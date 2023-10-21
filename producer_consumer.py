@@ -72,15 +72,14 @@ class Producer:
     
     def produce(self):
         while True:
+            self.time_to_sleep = rd.randint(1, 8)
             if not stop_threads:
                 if empty_spaces.acquire():
                     empty_spaces.release()
                     mutex.acquire()
                     amount_to_produce = rd.randint(4, 7)
-                    # self.time_to_sleep = rd.randint(1, 8)
                     canvas_producer['image'] = working_image
                     producer_state.config(text="ACTIVO", bootstyle="success")
-                    # producer_state.config(text="ACTIVO", fg="green")
                     for i in range(amount_to_produce):
                         empty_spaces.acquire()
                         full_spaces.release()
@@ -92,15 +91,14 @@ class Producer:
                     mutex.release()
                     canvas_producer['image'] = sleeping_image
                     producer_state.config(text="DORMIDO", bootstyle="danger")
-                    # producer_state.config(text="DORMIDO", fg="red")
+                    t.sleep(self.time_to_sleep)
                 else:
                     canvas_producer['image'] = entering_image
                     producer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
-                    # producer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
                     t.sleep(1)
                     canvas_producer['image'] = sleeping_image
                     producer_state.config(text="DORMIDO", bootstyle="danger")
-                    # producer_state.config(text="DORMIDO", fg="red")
+                    t.sleep(self.time_to_sleep)
 
 class Consumer:
     def __init__(self, position):
@@ -108,15 +106,14 @@ class Consumer:
         
     def consume(self):
         while True:
+            self.time_to_sleep = rd.randint(1,8)
             if not stop_threads:
                 if full_spaces.acquire():
                     full_spaces.release()
                     mutex.acquire()
-                    # self.time_to_sleep = rd.randint(1,8)
                     canvas_consumer['image'] = working_image
                     consumer_state.config(text="ACTIVO", bootstyle="success")
                     amount_to_produce = rd.randint(4,7)
-                    # consumer_state.config(text="ACTIVO", fg="green")
                     if amount_to_produce <= full_spaces._value:
                         for i in range(amount_to_produce):
                             empty_spaces.release()
@@ -129,7 +126,7 @@ class Consumer:
                         mutex.release()
                         canvas_consumer['image'] = sleeping_image
                         consumer_state.config(text='DORMIDO', bootstyle="danger")
-                        # consumer_state.config(text='DORMIDO', fg="red")
+                        t.sleep(self.time_to_sleep)
                     else:
                         for i in range(full_spaces._value):
                             empty_spaces.release()
@@ -141,20 +138,18 @@ class Consumer:
                                 self.position = 0
                         canvas_consumer['image'] = entering_image
                         consumer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
-                        # consumer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
                         t.sleep(1)
                         canvas_consumer['image'] = sleeping_image
-                        # consumer_state.config(text="DORMIDO", fg="red")
                         consumer_state.config(text="DORMIDO", bootstyle="danger")
                         mutex.release()
+                        t.sleep(self.time_to_sleep)
                 else:
                     canvas_consumer['image'] = entering_image
                     consumer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
-                    # consumer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
                     t.sleep(1)
                     canvas_consumer['image'] = sleeping_image
                     consumer_state.config(text="DORMIDO", bootstyle="danger")
-                    # consumer_state.config(text="DORMIDO", fg="red")
+                    t.sleep(self.time_to_sleep)
 
 producer = Producer(0)
 consumer = Consumer(0)
