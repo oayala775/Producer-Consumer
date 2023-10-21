@@ -72,34 +72,35 @@ class Producer:
     
     def produce(self):
         while True:
-            if empty_spaces.acquire():
-                empty_spaces.release()
-                mutex.acquire()
-                amount_to_produce = rd.randint(4, 7)
-                # self.time_to_sleep = rd.randint(1, 8)
-                canvas_producer['image'] = working_image
-                producer_state.config(text="ACTIVO", bootstyle="success")
-                # producer_state.config(text="ACTIVO", fg="green")
-                for i in range(amount_to_produce):
-                    empty_spaces.acquire()
-                    full_spaces.release()
-                    buffer[self.position].config(image=product_image)
+            if not stop_threads:
+                if empty_spaces.acquire():
+                    empty_spaces.release()
+                    mutex.acquire()
+                    amount_to_produce = rd.randint(4, 7)
+                    # self.time_to_sleep = rd.randint(1, 8)
+                    canvas_producer['image'] = working_image
+                    producer_state.config(text="ACTIVO", bootstyle="success")
+                    # producer_state.config(text="ACTIVO", fg="green")
+                    for i in range(amount_to_produce):
+                        empty_spaces.acquire()
+                        full_spaces.release()
+                        buffer[self.position].config(image=product_image)
+                        t.sleep(1)
+                        self.position += 1
+                        if self.position == 20:
+                            self.position = 0
+                    mutex.release()
+                    canvas_producer['image'] = sleeping_image
+                    producer_state.config(text="DORMIDO", bootstyle="danger")
+                    # producer_state.config(text="DORMIDO", fg="red")
+                else:
+                    canvas_producer['image'] = entering_image
+                    producer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
+                    # producer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
                     t.sleep(1)
-                    self.position += 1
-                    if self.position == 20:
-                        self.position = 0
-                mutex.release()
-                canvas_producer['image'] = sleeping_image
-                producer_state.config(text="DORMIDO", bootstyle="danger")
-                # producer_state.config(text="DORMIDO", fg="red")
-            else:
-                canvas_producer['image'] = entering_image
-                producer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
-                # producer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
-                t.sleep(1)
-                canvas_producer['image'] = sleeping_image
-                producer_state.config(text="DORMIDO", bootstyle="danger")
-                # producer_state.config(text="DORMIDO", fg="red")
+                    canvas_producer['image'] = sleeping_image
+                    producer_state.config(text="DORMIDO", bootstyle="danger")
+                    # producer_state.config(text="DORMIDO", fg="red")
 
 class Consumer:
     def __init__(self, position):
@@ -107,36 +108,37 @@ class Consumer:
         
     def consume(self):
         while True:
-            if full_spaces.acquire():
-                full_spaces.release()
-                mutex.acquire()
-                # self.time_to_sleep = rd.randint(1,8)
-                canvas_consumer['image'] = working_image
-                consumer_state.config(text="ACTIVO", bootstyle="success")
-                amount_to_produce = rd.randint(4,7)
-                # consumer_state.config(text="ACTIVO", fg="green")
-                if amount_to_produce <= full_spaces._value:
-                    for i in range(amount_to_produce):
-                        empty_spaces.release()
-                        full_spaces.acquire()
-                        buffer[self.position].config(image=black_square)
-                        t.sleep(1)
-                        self.position += 1
-                        if self.position >= 20:
-                            self.position = 0
-                    mutex.release()
-                    canvas_consumer['image'] = sleeping_image
-                    consumer_state.config(text='DORMIDO', bootstyle="danger")
-                    # consumer_state.config(text='DORMIDO', fg="red")
-                else:
-                    for i in range(full_spaces._value):
-                        empty_spaces.release()
-                        full_spaces.acquire()
-                        buffer[self.position].config(image=black_square)
-                        t.sleep(1)
-                        self.position += 1
-                        if self.position >= 20:
-                            self.position = 0
+            if not stop_threads:
+                if full_spaces.acquire():
+                    full_spaces.release()
+                    mutex.acquire()
+                    # self.time_to_sleep = rd.randint(1,8)
+                    canvas_consumer['image'] = working_image
+                    consumer_state.config(text="ACTIVO", bootstyle="success")
+                    amount_to_produce = rd.randint(4,7)
+                    # consumer_state.config(text="ACTIVO", fg="green")
+                    if amount_to_produce <= full_spaces._value:
+                        for i in range(amount_to_produce):
+                            empty_spaces.release()
+                            full_spaces.acquire()
+                            buffer[self.position].config(image=black_square)
+                            t.sleep(1)
+                            self.position += 1
+                            if self.position >= 20:
+                                self.position = 0
+                        mutex.release()
+                        canvas_consumer['image'] = sleeping_image
+                        consumer_state.config(text='DORMIDO', bootstyle="danger")
+                        # consumer_state.config(text='DORMIDO', fg="red")
+                    else:
+                        for i in range(full_spaces._value):
+                            empty_spaces.release()
+                            full_spaces.acquire()
+                            buffer[self.position].config(image=black_square)
+                            t.sleep(1)
+                            self.position += 1
+                            if self.position >= 20:
+                                self.position = 0
                         canvas_consumer['image'] = entering_image
                         consumer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
                         # consumer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
@@ -145,14 +147,14 @@ class Consumer:
                         # consumer_state.config(text="DORMIDO", fg="red")
                         consumer_state.config(text="DORMIDO", bootstyle="danger")
                         mutex.release()
-            else:
-                canvas_consumer['image'] = entering_image
-                consumer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
-                # consumer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
-                t.sleep(1)
-                canvas_consumer['image'] = sleeping_image
-                consumer_state.config(text="DORMIDO", bootstyle="danger")
-                # consumer_state.config(text="DORMIDO", fg="red")
+                else:
+                    canvas_consumer['image'] = entering_image
+                    consumer_state.config(text="INTENTANDO\nENTRAR", bootstyle="warning")
+                    # consumer_state.config(text="INTENTANDO\nENTRAR", fg="orange")
+                    t.sleep(1)
+                    canvas_consumer['image'] = sleeping_image
+                    consumer_state.config(text="DORMIDO", bootstyle="danger")
+                    # consumer_state.config(text="DORMIDO", fg="red")
 
 producer = Producer(0)
 consumer = Consumer(0)
@@ -166,6 +168,8 @@ consumering_thread.start()
 def on_key_release(event):
     if event.keysym == "Escape":
         window.quit()   
+        window.destroy()
+        stop_threads = True
                 
 window.bind('<KeyRelease>',on_key_release)
                         
